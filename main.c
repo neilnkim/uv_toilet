@@ -14,7 +14,7 @@
 
 #include <avr/interrupt.h>
 
-volatile unsigned int timer_overflow_count = 0;
+volatile unsigned long timer_overflow_count = 0;
 unsigned char g_state = STATE_IDLE;
 unsigned char g_key_pressed = 0;
 unsigned char g_cover_state = _OPEN_;
@@ -233,7 +233,7 @@ void led_player_15min(void)
 
 int main(void)
 {
-	unsigned int state_timeout;
+	unsigned long state_timeout;
 
 	init_gpio();
 	init_timer();

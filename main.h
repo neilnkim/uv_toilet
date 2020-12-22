@@ -30,10 +30,20 @@
 
 #define SYS_CLOCK        4000000	//8000000 //14745600
 
-#define SYSTICK_5SEC 	(5*2)
-#define SYSTICK_5MIN 	(5*60*2)
-#define SYSTICK_10MIN 	(10*60*2)
-#define SYSTICK_15MIN 	(15*60*2)
+#define MIN_TO_TICK(x)			((x*60)*75/46)
+#define SEC_TO_TICK(x)			(x*75/46)
+
+#if 1 // original
+#define SYSTICK_5SEC 	8
+#define SYSTICK_5MIN 	489 // 97 =  489/5
+#define SYSTICK_10MIN 	978 //195 =  978/5
+#define SYSTICK_15MIN 	1467 //293 = 1467/5
+#else // shorten for test
+#define SYSTICK_5SEC 	8
+#define SYSTICK_5MIN 	97 // 97 =  489/5
+#define SYSTICK_10MIN 	195 //195 =  978/5
+#define SYSTICK_15MIN 	293 //293 = 1467/5
+#endif
 
 #define STATE_OPEN 		0
 #define STATE_CLOSED1 	1
