@@ -1,0 +1,9 @@
+
+*.o
+*.eep
+*.elf
+*.hex
+*.lss
+*.map
+
+output_gcc/dep/
