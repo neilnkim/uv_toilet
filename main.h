@@ -22,28 +22,11 @@
 #include <avr/sleep.h>
 #include "version.h"
 
-#ifndef ATMEGA_MAIN
-	#define EXTERN extern
-#else
-	#define EXTERN
-#endif
-
-#define SYS_CLOCK        4000000	//8000000 //14745600
-
-#define MIN_TO_TICK(x)			((x*60)*75/46)
-#define SEC_TO_TICK(x)			(x*75/46)
-
-#if 1 // original
-#define SYSTICK_5SEC 	8
-#define SYSTICK_5MIN 	489 // 97 =  489/5
-#define SYSTICK_10MIN 	978 //195 =  978/5
-#define SYSTICK_15MIN 	1467 //293 = 1467/5
-#else // shorten for test
-#define SYSTICK_5SEC 	8
-#define SYSTICK_5MIN 	97 // 97 =  489/5
-#define SYSTICK_10MIN 	195 //195 =  978/5
-#define SYSTICK_15MIN 	293 //293 = 1467/5
-#endif
+// 1tick = 0.55sec
+#define SYSTICK_5SEC 	9
+#define SYSTICK_5MIN 	(545)
+#define SYSTICK_10MIN 	(1090)
+#define SYSTICK_15MIN 	(1636)
 
 #define STATE_OPEN 		0
 #define STATE_CLOSED1 	1

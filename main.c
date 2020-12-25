@@ -45,7 +45,7 @@ void init_timer(void)
 void init_gpio(void)
 {
 	DDRB = 0b00001110;
-	PORTB= 0b00000000;
+	PORTB= 0b00011111;
 }
 
 #if 0
@@ -66,7 +66,7 @@ void delay_10us(unsigned short time_ms)
 void delay_1ms(unsigned short time_ms)
 {
 	register unsigned short i, j;
-	for(j=0;j<50;j++)
+	for(j=0;j<42;j++)
 	{
 		for(i=0; i<time_ms; i++)
 		{
@@ -120,6 +120,9 @@ void check_function_key_pressed(void)
 {
 	static unsigned char key_cnt_10ms=0;
 
+	if(timer_overflow_count<=2)
+		return;
+
 	if(PINB&BIT0) // HIGH
 	{
 		g_key_pressed = _FALSE_;
@@ -127,6 +130,13 @@ void check_function_key_pressed(void)
 	}
 	else if(key_cnt_10ms++==10)
 		g_key_pressed = _TRUE_;
+
+	if(g_key_pressed)
+	{
+		g_key_pressed = 0;
+		g_mode++;
+		g_mode %= MAX_MODE_NUM;
+	}
 }
 
 // B4: H=open, L=closed
@@ -134,7 +144,7 @@ void check_cover_state(void)
 {
 	static unsigned char open_cnt_10ms=0, closed_cnt_10ms=0;
 
-	if(PINB&BIT0) // HIGH
+	if(PINB&BIT4) // HIGH
 	{
 		open_cnt_10ms++;
 		closed_cnt_10ms=0;
@@ -175,16 +185,6 @@ void led_player_10min(void)
 		set_red_led(_ON_);
 	}
 
-/*
-	if(0<=led_count_10ms && led_count_10ms<30)
-	{
-		set_red_led(_ON_);
-	}
-	else if(30<=led_count_10ms && led_count_10ms<200)
-	{
-		set_red_led(_OFF_);
-	}
-*/
 	led_count_10ms++;
 	led_count_10ms %= 200;
 }
@@ -209,27 +209,22 @@ void led_player_15min(void)
 	{
 		set_red_led(_ON_);
 	}
-/*
-	if(0<=led_count_10ms && led_count_10ms<30)
-	{
-		set_red_led(_ON_);
-	}
-	else if(30<=led_count_10ms && led_count_10ms<60)
-	{
-		set_red_led(_OFF_);
-	}
-	else if(60<=led_count_10ms && led_count_10ms<90)
-	{
-		set_red_led(_ON_);
-	}
-	else if(90<=led_count_10ms && led_count_10ms<200)
-	{
-		set_red_led(_OFF_);
-	}
-*/
+
 	led_count_10ms++;
 	led_count_10ms %= 200;
 }
+
+void led_player(void)
+{
+		switch(g_mode)
+	{
+		default:
+		case MODE_5MIN: 	led_player_5min(); 	break;
+		case MODE_10MIN:	led_player_10min();	break;
+		case MODE_15MIN:	led_player_15min();	break;
+	}
+}
+
 
 int main(void)
 {
@@ -246,9 +241,10 @@ int main(void)
 
 	while(1)
 	{
-		delay_1ms(10);
 		check_function_key_pressed();
 		check_cover_state();
+		led_player();
+		delay_1ms(10);
 
 		switch(g_state)
 		{
@@ -259,13 +255,6 @@ int main(void)
 					timer_overflow_count = 0;
 					g_state = STATE_CLOSED1;
 					break;
-				}
-
-				if(g_key_pressed)
-				{
-					g_key_pressed = 0;
-					g_mode++;
-					g_mode %= MAX_MODE_NUM;
 				}
 			}
 			break;
@@ -279,6 +268,14 @@ int main(void)
 					set_uvc_led(_ON_);
 					timer_overflow_count = 0;
 					g_state = STATE_CLOSED2;
+					
+					if(g_mode==MODE_10MIN)
+						state_timeout = SYSTICK_10MIN;
+					else if(g_mode==MODE_15MIN)
+						state_timeout = SYSTICK_15MIN;
+					else
+						state_timeout = SYSTICK_5MIN;
+
 				}
 			}
 			break;
@@ -286,13 +283,6 @@ int main(void)
 			case STATE_CLOSED2:
 			{
 				set_uvc_led(_ON_);
-
-				if(g_mode==MODE_10MIN)
-					state_timeout = SYSTICK_10MIN;
-				else if(g_mode==MODE_15MIN)
-					state_timeout = SYSTICK_15MIN;
-				else
-					state_timeout = SYSTICK_5MIN;
 
 				if(timer_overflow_count > state_timeout) //5 sec
 				{
@@ -317,26 +307,7 @@ int main(void)
 			}
 			break;
 		}
-
-		//update status led
-		if(g_state==STATE_IDLE)
-		{
-			set_green_led(_OFF_);
-			set_red_led(_OFF_);
-			set_uvc_led(_OFF_);
-		}
-		else
-		{
-			switch(g_mode)
-			{
-				default:
-				case MODE_5MIN: 	led_player_5min(); 	break;
-				case MODE_10MIN:	led_player_10min();	break;
-				case MODE_15MIN:	led_player_15min();	break;
-			}
-		}
 	}
-
 	return 0;
 }
 
